@@ -56,24 +56,13 @@ pub fn draw<A: Automaton>(automaton: &A, layout: &Layout) {
 
     let board = automaton.board();
 
-    let grid_color = Color::from_rgba(30, 30, 30, 255);
-    let min_dim = layout.cell_w.min(layout.cell_h);
-    let gap = (min_dim * 0.08).max(1.0).min(min_dim / 3.0);
-
     for (idx, cell) in board.cells().iter().enumerate() {
         let row = idx / layout.width;
         let col = idx % layout.width;
         let x = layout.origin_x + col as f32 * layout.cell_w;
         let y = layout.origin_y + row as f32 * layout.cell_h;
 
-        draw_rectangle(x, y, layout.cell_w, layout.cell_h, grid_color);
-        draw_rectangle(
-            x + gap,
-            y + gap,
-            layout.cell_w - 2.0 * gap,
-            layout.cell_h - 2.0 * gap,
-            (*cell).into(),
-        );
+        draw_rectangle(x, y, layout.cell_w, layout.cell_h, (*cell).into());
     }
 
     let title = format!("{} — Iterations: {}", A::name(), automaton.iterations());

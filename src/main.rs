@@ -1,6 +1,7 @@
 use anyhow::Context;
 use game_of_life::{
-    AutomatonType, Configuration, Conway, ConwayScene, FireScene, FireSim, Res, Runner,
+    AutomatonType, Configuration, Conway, ConwayScene, FireScene, FireSim, IFireScene, IFireSim,
+    Res, Runner,
 };
 
 #[macroquad::main("Game of Life")]
@@ -26,8 +27,16 @@ async fn run() -> Res<()> {
                     let scene: FireScene = value.try_into()?;
                     Runner::<FireSim>::new(config, scene).run().await
                 }
+                AutomatonType::IFireSim => {
+                    let scene: IFireScene = value.try_into()?;
+                    Runner::<IFireSim>::new(config, scene).run().await
+                }
             }
         }
-        None => Runner::<Conway>::new(config, ConwayScene::empty(80, 40)).run().await,
+        None => {
+            Runner::<Conway>::new(config, ConwayScene::empty(80, 40))
+                .run()
+                .await
+        }
     }
 }

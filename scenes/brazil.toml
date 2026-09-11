@@ -1,0 +1,9 @@
+type = "isfb"
+width = 800
+height = 600
+wind_direction = "oeste"
+wind_speed = "um"
+
+tif_path = "scenes/brazil_coverage-col11_2025.tif"
+lat = -5.69
+lon = -35.4

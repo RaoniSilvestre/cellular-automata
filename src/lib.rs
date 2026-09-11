@@ -6,7 +6,7 @@ mod view;
 use anyhow::{bail, Context};
 use toml::Value;
 
-pub use automaton::{Automaton, Conway, ConwayScene, FireScene, FireSim};
+pub use automaton::{Automaton, Conway, ConwayScene, FireScene, FireSim, IFireScene, IFireSim};
 pub use config::Configuration;
 pub use runner::Runner;
 
@@ -16,6 +16,7 @@ pub type Res<T> = Result<T, anyhow::Error>;
 pub enum AutomatonType {
     Conway,
     FireSim,
+    IFireSim,
 }
 
 impl TryFrom<&Value> for AutomatonType {
@@ -29,6 +30,7 @@ impl TryFrom<&Value> for AutomatonType {
         match name {
             "conway" => Ok(Self::Conway),
             "sfb" => Ok(Self::FireSim),
+            "isfb" => Ok(Self::IFireSim),
             other => bail!("autômato desconhecido: {other:?}"),
         }
     }

@@ -5,9 +5,11 @@ use serde::{de::DeserializeOwned, Serialize};
 
 mod conway;
 mod firesim;
+mod ifiresim;
 
 pub use conway::{Conway, ConwayScene};
 pub use firesim::{FireScene, FireSim};
+pub use ifiresim::{IFireScene, IFireSim};
 
 pub trait Automaton: Sized {
     type Cell: Into<Color> + Copy + Default + PartialEq + Send + 'static + Sync;
