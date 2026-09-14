@@ -83,16 +83,19 @@ impl Automaton for IFireSim {
                     // sfb.py:272-350 — célula suscetível: pode inflamar ou
                     // acumular exposição.
                     FireState::Susceptible => {
-                        let prob = Self::ignition_probability(
-                            &self.board,
-                            &self.matrices,
-                            &self.exposure,
-                            self.wind_speed,
-                            self.wind_direction,
-                            p,
+                        let ctx = IgnitionContext {
+                            board: &self.board,
+                            matrices: &self.matrices,
+                            exposure: &self.exposure,
+                            wind_speed: self.wind_speed,
+                            wind_direction: self.wind_direction,
+                            point: p,
                             alcance,
-                            cell.vegetation.into(),
-                        );
+                            veg: cell.vegetation.into(),
+                        };
+
+                        let prob = ignition_probability(ctx);
+
                         if rng.random::<f64>() <= prob {
                             next.state = FireState::Burning;
                         } else {
@@ -115,7 +118,7 @@ impl Automaton for IFireSim {
         for idx in 0..(width * height) {
             let cell = self.board.cells()[idx];
             if cell.state == FireState::Burning && self.timer[idx] == -1 {
-                self.timer[idx] = Self::deterioration(cell.vegetation.into());
+                self.timer[idx] = cell.vegetation.deterioration();
             }
         }
     }
@@ -231,67 +234,69 @@ impl IFireSim {
 
         board.set((x as i32, y as i32), cell);
     }
+}
 
-    /// Tempo de deterioração (gerações queimando até virar queimada).
-    ///
-    /// sfb.py:73 (baixa = 3), sfb.py:115 (média = 2), sfb.py:157 (alta = 1).
-    fn deterioration(veg: FuelType) -> i32 {
-        match veg {
-            FuelType::Low => 3,
-            FuelType::Medium => 2,
-            FuelType::High => 1,
-            FuelType::Unburnable => 0,
+struct IgnitionContext<'a> {
+    board: &'a Board<IFireCell>,
+    matrices: &'a PrefMatrices,
+    exposure: &'a [f64],
+    wind_speed: WindSpeed,
+    wind_direction: WindDirection,
+    point: Point,
+    alcance: i32,
+    veg: FuelType,
+}
+
+/// Probabilidade de uma célula suscetível pegar fogo nesta geração.
+///
+/// Porta a parte suscetível de `rules` (sfb.py:272-350): soma as
+/// preferências dos vizinhos inflamados e adiciona a exposição acumulada;
+/// se a soma for < 0.01 a probabilidade é 0 (sfb.py:290-293).
+///
+/// Recebe os campos de forma explícita (em vez de `&self`) para permitir
+/// chamá-la enquanto `self.next` está mutavelmente emprestado em `step`.
+fn ignition_probability(ctx: IgnitionContext) -> f64 {
+    let IgnitionContext {
+        board,
+        matrices,
+        exposure,
+        wind_speed,
+        wind_direction,
+        point,
+        alcance,
+        veg,
+    } = ctx;
+
+    let (x, y) = point;
+
+    let matrix = matrices.get(veg, wind_speed, wind_direction);
+    let width = board.width();
+    let height = board.height();
+    let mut soma = 0.0;
+
+    for i in -alcance..=alcance {
+        for j in -alcance..=alcance {
+            if i == 0 && j == 0 {
+                continue;
+            }
+
+            let xi = x + i;
+            let yj = y + j;
+
+            if xi < 0 || yj < 0 || xi as usize >= height || yj as usize >= width {
+                continue;
+            }
+
+            if board.get((xi, yj)).state == FireState::Burning {
+                // sfb.py:288 — `matriz_preferencia[j + alcance][i + alcance]`.
+                soma += matrix[(i + alcance) as usize][(j + alcance) as usize];
+            }
         }
     }
 
-    /// Probabilidade de uma célula suscetível pegar fogo nesta geração.
-    ///
-    /// Porta a parte suscetível de `rules` (sfb.py:272-350): soma as
-    /// preferências dos vizinhos inflamados e adiciona a exposição acumulada;
-    /// se a soma for < 0.01 a probabilidade é 0 (sfb.py:290-293).
-    ///
-    /// Recebe os campos de forma explícita (em vez de `&self`) para permitir
-    /// chamá-la enquanto `self.next` está mutavelmente emprestado em `step`.
-    #[allow(clippy::too_many_arguments)]
-    fn ignition_probability(
-        board: &Board<IFireCell>,
-        matrices: &PrefMatrices,
-        exposure: &[f64],
-        wind_speed: WindSpeed,
-        wind_direction: WindDirection,
-        (x, y): Point,
-        alcance: i32,
-        veg: FuelType,
-    ) -> f64 {
-        let matrix = matrices.get(veg, wind_speed, wind_direction);
-        let width = board.width();
-        let height = board.height();
-        let mut soma = 0.0;
-
-        for i in -alcance..=alcance {
-            for j in -alcance..=alcance {
-                if i == 0 && j == 0 {
-                    continue;
-                }
-
-                let xi = x + i;
-                let yj = y + j;
-
-                if xi < 0 || yj < 0 || xi as usize >= height || yj as usize >= width {
-                    continue;
-                }
-
-                if board.get((xi, yj)).state == FireState::Burning {
-                    // sfb.py:288 — `matriz_preferencia[j + alcance][i + alcance]`.
-                    soma += matrix[(i + alcance) as usize][(j + alcance) as usize];
-                }
-            }
-        }
-
-        if soma < 0.01 {
-            0.0
-        } else {
-            (soma + exposure[x as usize * width + y as usize]).min(1.0)
-        }
+    if soma < 0.01 {
+        0.0
+    } else {
+        (soma + exposure[x as usize * width + y as usize]).min(1.0)
     }
 }

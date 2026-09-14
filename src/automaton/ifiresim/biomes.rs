@@ -77,6 +77,18 @@ impl MapBiomasClass {
             FuelType::Unburnable => 0.,
         }
     }
+
+    /// Tempo de deterioração (gerações queimando até virar queimada).
+    ///
+    /// sfb.py:73 (baixa = 3), sfb.py:115 (média = 2), sfb.py:157 (alta = 1).
+    pub fn deterioration(&self) -> i32 {
+        match self.into() {
+            FuelType::Low => 3,
+            FuelType::Medium => 2,
+            FuelType::High => 1,
+            FuelType::Unburnable => 0,
+        }
+    }
 }
 
 impl TryFrom<u8> for MapBiomasClass {
