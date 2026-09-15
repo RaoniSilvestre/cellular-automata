@@ -1,3 +1,5 @@
+use macroquad::color::Color;
+
 use crate::automaton::ifiresim::{biomes::MapBiomasClass, wind::WindSpeed, Matrix};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -6,6 +8,28 @@ pub enum FuelType {
     Low,        // Pastagem, lavouras temporárias, marismas, vegetação campestre
     Medium,     // Savana, restingas, cafezais, pomares
     High,       // Formações florestais fechadas, silvicultura
+}
+
+impl FuelType {
+    pub fn name(self) -> &'static str {
+        match self {
+            FuelType::Unburnable => "Não combustível",
+            FuelType::Low => "Baixa",
+            FuelType::Medium => "Média",
+            FuelType::High => "Alta",
+        }
+    }
+}
+
+impl From<FuelType> for Color {
+    fn from(value: FuelType) -> Self {
+        match value {
+            FuelType::Unburnable => Color::from_rgba(0x9E, 0x9E, 0x9E, 255),
+            FuelType::Low => Color::from_rgba(0xF2, 0xE0, 0x4B, 255),
+            FuelType::Medium => Color::from_rgba(0xF2, 0x8C, 0x28, 255),
+            FuelType::High => Color::from_rgba(0xB7, 0x1C, 0x1C, 255),
+        }
+    }
 }
 
 impl From<MapBiomasClass> for FuelType {

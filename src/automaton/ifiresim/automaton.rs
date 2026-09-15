@@ -9,7 +9,7 @@
 
 use crate::automaton::{
     ifiresim::{
-        biomes::MapBiomasClass,
+        biomes::{MapBiomasClass, ALL},
         cell::IFireCell,
         fuel::FuelType,
         preferences::PrefMatrices,
@@ -21,6 +21,7 @@ use crate::automaton::{
 };
 use gdal::raster::Buffer;
 use gdal::Dataset;
+use macroquad::color::Color;
 use rand::Rng;
 use std::sync::Arc;
 
@@ -34,6 +35,15 @@ pub struct IFireSim {
     wind_speed: WindSpeed,
     iterations: usize,
     matrices: PrefMatrices,
+    view: ViewMode,
+    show_legend: bool,
+}
+
+#[derive(Debug, Default)]
+enum ViewMode {
+    #[default]
+    MapBiomasClass,
+    FuelType,
 }
 
 impl Automaton for IFireSim {
@@ -187,6 +197,49 @@ impl Automaton for IFireSim {
     fn iterations(&self) -> usize {
         self.iterations
     }
+
+    fn legend(&self) -> Vec<(String, Color)> {
+        if !self.show_legend {
+            return Vec::new();
+        }
+        match self.view {
+            ViewMode::FuelType => [
+                FuelType::Unburnable,
+                FuelType::Low,
+                FuelType::Medium,
+                FuelType::High,
+            ]
+            .iter()
+            .map(|&fuel| (fuel.name().to_string(), fuel.into()))
+            .collect(),
+            ViewMode::MapBiomasClass => ALL
+                .iter()
+                .map(|&class| (class.name().to_string(), class.into()))
+                .collect(),
+        }
+    }
+
+    fn toggle(&mut self) {
+        self.view = match self.view {
+            ViewMode::MapBiomasClass => ViewMode::FuelType,
+            ViewMode::FuelType => ViewMode::MapBiomasClass,
+        }
+    }
+
+    fn toggle_legend(&mut self) {
+        self.show_legend = !self.show_legend;
+    }
+
+    fn paint_cell(&self, cell: &Self::Cell) -> Color {
+        match self.view {
+            ViewMode::MapBiomasClass => cell.vegetation.into(),
+            ViewMode::FuelType => {
+                let fuel: FuelType = cell.vegetation.into();
+
+                fuel.into()
+            }
+        }
+    }
 }
 
 impl IFireSim {
@@ -200,6 +253,8 @@ impl IFireSim {
             wind_speed: WindSpeed::Um,
             iterations: 0,
             matrices: PrefMatrices::build(),
+            view: ViewMode::MapBiomasClass,
+            show_legend: false,
         }
     }
 
@@ -230,7 +285,7 @@ impl IFireSim {
         };
 
         let idx = x * w + y;
-        self.timer[idx] = 3;
+        self.timer[idx] = 2;
 
         board.set((x as i32, y as i32), cell);
     }

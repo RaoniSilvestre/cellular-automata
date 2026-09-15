@@ -52,6 +52,14 @@ impl<A: Automaton> Runner<A> {
             self.stop = !self.stop;
         }
 
+        if is_key_pressed(KeyCode::K) {
+            self.automaton.toggle_legend();
+        }
+
+        if is_key_pressed(KeyCode::M) {
+            self.automaton.toggle();
+        }
+
         if is_mouse_button_down(MouseButton::Left) {
             if let Some(p) = layout.screen_to_cell(mouse_position()) {
                 self.automaton.paint_left(p);

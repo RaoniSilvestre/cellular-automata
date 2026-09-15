@@ -23,6 +23,17 @@ pub trait Automaton: Sized {
     fn paint_left(&mut self, _p: Point) {}
     fn paint_right(&mut self, _p: Point) {}
     fn iterations(&self) -> usize;
+
+    fn paint_cell(&self, cell: &Self::Cell) -> Color {
+        (*cell).into()
+    }
+
+    fn toggle(&mut self) {}
+    fn toggle_legend(&mut self) {}
+
+    fn legend(&self) -> Vec<(String, Color)> {
+        Vec::new()
+    }
 }
 
 pub type Point = (i32, i32);
