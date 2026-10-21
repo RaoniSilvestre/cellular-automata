@@ -1,81 +1,39 @@
-# Conway's game of life
+# automaton
 
-![GitHub repo size](https://img.shields.io/github/repo-size/RaoniSilvestre/game-of-life?style=for-the-badge)
-![GitHub language count](https://img.shields.io/github/languages/count/RaoniSilvestre/game-of-life?style=for-the-badge)
+Simulador de autômatos celulares em Rust com interface gráfica feita com macroquad. O programa abre uma janela, carrega uma cena descrita em TOML e anima a evolução do autômato, com controles para pausar, acelerar e interagir com o tabuleiro.
 
+Estão implementados três autômatos. O primeiro é o Conway's Game of Life, que aceita tabuleiros definidos em cenas TOML e permite alternar células manualmente ou sortear um bloco de células com o mouse. O segundo é uma simulação de propagação de incêndio florestal em que a vegetação é distribuída aleatoriamente em três perfis (realismo, risco e didático), com direção e velocidade do vento configuráveis e focos iniciais escolhidos na cena. O terceiro é uma variante dessa simulação que lê uma janela de um GeoTIFF do MapBiomas a partir de latitude e longitude, converte as classes de bioma em tipos de combustível e permite alternar a visualização entre bioma e combustível, além de exibir uma legenda.
 
-https://github.com/user-attachments/assets/276e1ab8-ee08-435f-a7e7-de248b5e04ef
+As cenas ficam em `scenes/` e são arquivos TOML identificados pelos tipos `conway`, `sfb` e `isfb`. O FPS e o caminho da cena são passados por linha de comando.
 
-A simple and interactive terminal-based version of Conway's Game of Life, written in Rust!
-Customize the speed, draw your initial cells, and watch how the simulation evolves.
+## Como executar
 
-## Controls
+Conway:
 
-| Key/Action | Effect |
-|:---|:---|
-| Left Mouse Button | Toggle cell state (alive/dead) |
-| Enter | Start or pause the simulation |
-| q | Quit the game |
+    cargo run --release -- -s scenes/glider.toml
 
-## Running the project
+Incêndio com vegetação aleatória:
 
-You can run the project either with Cargo or inside a Docker container.
+    cargo run --release -- -s scenes/sfb.toml
 
-### Running with Cargo
+Incêndio sobre uma janela do mapa do Brasil:
 
-> ⚡ Note: The first build might take a few minutes as it downloads and compiles all dependencies.
+    cargo run --release -- -s scenes/brazil.toml
 
-Make sure you have Rust installed: https://www.rust-lang.org/tools/install
+Sem o argumento de cena, o programa abre um Conway vazio de 80x40:
 
-```rust 
-cargo run --release -q
-```
+    cargo run --release
 
-You can also pass options:
+As opções disponíveis são `-f` ou `--fps` para definir os quadros por segundo (padrão 1) e `-s` ou `--scene` para indicar o arquivo da cena.
 
-```rust 
-cargo run -q -- -f 10
-```
+## Controles
 
-### Running with Docker
+Esc ou Q encerra o programa, e Enter ou Espaço inicia ou pausa a simulação. O botão esquerdo do mouse acende uma célula na simulação de incêndio ou alterna uma célula no Conway, enquanto o botão direito acende uma vizinhança 3x3 no incêndio ou sorteia células no Conway. Na simulação integrada com o MapBiomas, K mostra ou oculta a legenda e M alterna entre a visualização por bioma e por tipo de combustível.
 
-> ⚡ Note: The first Docker build can take a few minutes too, due to Rust compilation.
+## Requisitos
 
-First, build the image:
+É necessário ter Rust 1.85 ou superior, já que o projeto usa edition 2024, e a biblioteca GDAL instalada para a leitura do GeoTIFF.
 
-```
-docker build -t game-of-life .
-```
+## Estrutura
 
-Then run it interactively:
-
-```
-docker run -it game-of-life
-```
-
-You can also pass flags, just like when running directly:
-
-```
-docker run -it game-of-life -f 10
-```
-
-## CLI Help
-
-```
-❯ cargo run -q -- --help
-Basic simulator for Conway's Game of Life
-
-Usage: game-of-life [OPTIONS]
-
-Options:
-  -f, --fps <FPS>  Frames per second [default: 1]
-  -h, --help       Print help
-  -V, --version    Print version
-```
-
-## About the project
-
-This project is a fun exploration of terminal graphics and event handling using Rust.
-It focuses on a smooth user experience with real-time interaction and a simple CLI interface.
-
-Contributions, feedback, and ideas are very welcome! 🚀
+A implementação dos autômatos fica em `src/automaton/`, com um módulo para o Conway e outro para cada variante da simulação de incêndio. O loop principal e o tratamento de entrada estão em `src/runner.rs`, o desenho do tabuleiro, do título e da legenda em `src/view.rs`, e a leitura dos argumentos em `src/config.rs`. A pasta `scenes/` reúne as cenas TOML e o GeoTIFF usado pela cena do Brasil.
