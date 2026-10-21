@@ -1,6 +1,6 @@
 use macroquad::color::Color;
 
-use crate::automaton::ifiresim::{biomes::MapBiomasClass, wind::WindSpeed, Matrix};
+use crate::automaton::ifiresim::{Matrix, biomes::MapBiomasClass, wind::WindSpeed};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FuelType {
@@ -57,6 +57,7 @@ impl From<MapBiomasClass> for FuelType {
             | MapBiomasClass::SugarCane
             | MapBiomasClass::Rice
             | MapBiomasClass::Cotton
+            | MapBiomasClass::Mangrove
             | MapBiomasClass::OtherTemporaryCrops
             | MapBiomasClass::Agriculture
             | MapBiomasClass::SaltMarsh => FuelType::Low,
@@ -79,7 +80,6 @@ impl From<MapBiomasClass> for FuelType {
             MapBiomasClass::Forest
             | MapBiomasClass::ForestFormation
             | MapBiomasClass::FloodableForest
-            | MapBiomasClass::Mangrove
             | MapBiomasClass::WoodedSandbank
             | MapBiomasClass::PalmOil
             | MapBiomasClass::ForestPlantation => FuelType::High,

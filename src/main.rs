@@ -1,10 +1,10 @@
 use anyhow::Context;
-use game_of_life::{
+use automaton::{
     AutomatonType, Configuration, Conway, ConwayScene, FireScene, FireSim, IFireScene, IFireSim,
     Res, Runner,
 };
 
-#[macroquad::main("Game of Life")]
+#[macroquad::main("Automaton")]
 async fn main() {
     if let Err(e) = run().await {
         eprintln!("Erro: {e}");

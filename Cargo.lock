@@ -86,6 +86,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
+name = "automaton"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "gdal",
+ "macroquad",
+ "rand",
+ "serde",
+ "toml",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -234,19 +247,6 @@ checksum = "7894823fa221401399e2598f8b63f81ac77ff5c63248b7656779bff1632d7d3d"
 dependencies = [
  "hashbrown 0.15.5",
  "ttf-parser",
-]
-
-[[package]]
-name = "game-of-life"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "gdal",
- "macroquad",
- "rand",
- "serde",
- "toml",
 ]
 
 [[package]]

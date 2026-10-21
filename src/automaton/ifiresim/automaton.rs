@@ -8,8 +8,9 @@
 //! substituídos por enumerações tipadas.
 
 use crate::automaton::{
+    Automaton, Board, Point,
     ifiresim::{
-        biomes::{MapBiomasClass, ALL},
+        biomes::{ALL, MapBiomasClass},
         cell::IFireCell,
         fuel::FuelType,
         preferences::PrefMatrices,
@@ -17,10 +18,9 @@ use crate::automaton::{
         state::FireState,
         wind::{WindDirection, WindSpeed},
     },
-    Automaton, Board, Point,
 };
-use gdal::raster::Buffer;
 use gdal::Dataset;
+use gdal::raster::Buffer;
 use macroquad::color::Color;
 use rand::Rng;
 use std::sync::Arc;
@@ -51,7 +51,7 @@ impl Automaton for IFireSim {
     type Scene = IFireScene;
 
     fn name() -> &'static str {
-        "Simulação de Incêndios (SFB)"
+        "Simulação de Incêndios"
     }
 
     fn new(width: usize, height: usize) -> Self {
@@ -231,13 +231,16 @@ impl Automaton for IFireSim {
     }
 
     fn paint_cell(&self, cell: &Self::Cell) -> Color {
-        match self.view {
-            ViewMode::MapBiomasClass => cell.vegetation.into(),
-            ViewMode::FuelType => {
-                let fuel: FuelType = cell.vegetation.into();
+        match cell.state {
+            FireState::Susceptible => match self.view {
+                ViewMode::MapBiomasClass => cell.vegetation.into(),
+                ViewMode::FuelType => {
+                    let fuel: FuelType = cell.vegetation.into();
 
-                fuel.into()
-            }
+                    fuel.into()
+                }
+            },
+            _ => (*cell).into(),
         }
     }
 }
@@ -285,7 +288,7 @@ impl IFireSim {
         };
 
         let idx = x * w + y;
-        self.timer[idx] = 2;
+        self.timer[idx] = 3;
 
         board.set((x as i32, y as i32), cell);
     }
